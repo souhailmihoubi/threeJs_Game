@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Game</title>
+    <link rel="stylesheet" type="text/css" href="base.css">
+
+</head>
+
+<body>
+    <script type="importmap">
+        {
+            "imports":{
+                "three":"/build/three.module.js",
+                "FBXLoader":"/examples/jsm/loaders/FBXLoader.js",
+                "OrbitControls":"/examples/jsm/controls/OrbitControls.js",
+                "GLTFLoader":"/examples/jsm/loaders/GLTFLoader.js",
+                "Clock":"/src/core/Clock.js",
+                "OBJLoader": "/examples/jsm/loaders/OBJLoader.js",
+                "TTFLoader": "/examples/jsm/loaders/TTFLoader.js",
+                "FontLoader": "/examples/jsm/loaders/FontLoader.js",
+                "TextGeometry": "/examples/jsm/geometries/TextGeometry.js"
+            }
+        }
+    </script>
+    <script src="build\three.min.js"></script>
+    <script src="examples\js\controls\OrbitControls.js"></script>
+    <script type="module">
+
+        import * as THREE from 'three';
+        import { OrbitControls } from 'OrbitControls';
+        import { Clock } from 'Clock';
+        import { FBXLoader } from 'FBXLoader';
+        import { GLTFLoader } from 'GLTFLoader';
+        import { OBJLoader } from 'OBJLoader';
+        import { TTFLoader } from 'TTFLoader';
+        import { FontLoader } from 'FontLoader';
+        import { TextGeometry } from 'TextGeometry';
+
+
+        //création d'une scène
+        var scene = new THREE.Scene();
+
+        //création d'une caméra 
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        scene.add(camera);
+
+        //Render le moteur graphique
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        //lighting
+        var directionalLight = new THREE.DirectionalLight(0xffffff, .8);
+        directionalLight.position.set(0, 5, 5);
+        scene.add(directionalLight);
+
+        // Add hemisphere light to scene
+        let hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.61);
+        hemiLight.position.set(0, 50, 0);
+        scene.add(hemiLight);
+        let d = 8.25;
+        let dirLight = new THREE.DirectionalLight(0xffffff, 0.54);
+        dirLight.position.set(-8, 12, 8);
+        dirLight.castShadow = false;
+        dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+        dirLight.shadow.camera.near = 0.1;
+        dirLight.shadow.camera.far = 1500;
+        dirLight.shadow.camera.left = d * -1;
+        dirLight.shadow.camera.right = d;
+        dirLight.shadow.camera.top = d;
+        dirLight.shadow.camera.bottom = d * -1;
+        // Add directional Light to scene
+        scene.add(dirLight);
+
+        //Orbit
+        var controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = false;
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 1;
+        controls.maxDistance = 100;
+        //camera.position.z = 5;
+
+        const clock = new THREE.Clock();
+
+
+
+        // load a texture
+        const planeTexture = new THREE.TextureLoader().load("./textures/plane.jpg");
+        const gappleTexture = new THREE.TextureLoader().load("./textures/green_apple.jpg");
+        const rappleTexture = new THREE.TextureLoader().load("./textures/red_apple.jpg");
+
+        //Plane
+        const back = new THREE.CubeTextureLoader();
+        const texture = back.load([
+            './objects/back/posx.jpg',
+            './objects/back/negx.jpg',
+            './objects/back/posy.jpg',
+            './objects/back/negy.jpg',
+            './objects/back/posz.jpg',
+            './objects/back/negz.jpg',
+        ]);
+        scene.background = texture;
+
+        const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 100, 10, 10),
+            new THREE.MeshBasicMaterial({ map: planeTexture }));
+
+        plane.rotation.x = -Math.PI / 2;
+        let planeboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        planeboudary.setFromObject(plane);
+        scene.add(plane);
+
+
+        //food geometry and material
+        const sphereGeometry = new THREE.SphereGeometry(1.3);
+        const gappleMaterial = new THREE.MeshBasicMaterial({ map: gappleTexture });
+        const rappleMaterial = new THREE.MeshBasicMaterial({ map: rappleTexture });
+
+
+
+
+
+
+
+        //Barrier
+        var topLeft;
+        var loader = new OBJLoader();
+        loader.load(
+
+            // resource URL
+            './objects/barrier.obj',
+
+            // called when resource is loaded
+            function (object) {
+                //scene.add(object);
+                topLeft = object;
+
+                topLeft.scale.set(0.2, 0.2, 0.2);
+                topLeft.rotation.y = 7.85;
+                topLeft.position.set(-15, 0, 37);
+                scene.add(topLeft);
+
+                var topLeft1 = topLeft.clone();
+                scene.add(topLeft1);
+                topLeft1.position.set(-37, 0, 24);
+                topLeft1.rotation.y = 0;
+
+                var topRight = topLeft.clone();
+                topRight.position.set(-15, 0, -37);
+                scene.add(topRight);
+
+                var topRight1 = topLeft1.clone();
+                topRight1.position.set(-37, 0, -24);
+                scene.add(topRight1);
+
+                var bottomLeft = topLeft.clone();
+                scene.add(bottomLeft);
+                bottomLeft.position.set(15, 0, 37);
+
+                var bottomLeft1 = topLeft1.clone();
+                bottomLeft1.position.set(37, 0, 24);
+                scene.add(bottomLeft1);
+
+                var bottomRight = topRight.clone();
+                bottomRight.position.set(15, 0, -37);
+                scene.add(bottomRight);
+
+                var bottomRight1 = topRight1.clone();
+                bottomRight1.position.set(37, 0, -24);
+                scene.add(bottomRight1);
+
+            },
+        );
+
+        // Collision
+
+        const topLeftBarrier = new THREE.Mesh(new THREE.BoxGeometry(25, 7, 2.7), new THREE.MeshBasicMaterial({ color: 0xa9c388 }));
+        scene.add(topLeftBarrier);
+        topLeftBarrier.position.set(-15, 3.8, 37);
+        topLeftBarrier.rotation.y = 7.85;
+        let topLeftBarrierboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        topLeftBarrierboudary.setFromObject(topLeftBarrier);
+        topLeftBarrier.visible = false;
+
+        const topLeftBarrier1 = new THREE.Mesh(new THREE.BoxGeometry(25, 7, 2.7), new THREE.MeshBasicMaterial({ color: 0xa9c388 }));
+        scene.add(topLeftBarrier1);
+        topLeftBarrier1.position.set(-37, 3.8, 24);
+        let topLeftBarrier1boudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        topLeftBarrier1boudary.setFromObject(topLeftBarrier1);
+        topLeftBarrier1.visible = false;
+
+        const topRightBarrier = topLeftBarrier.clone();
+        scene.add(topRightBarrier);
+        topRightBarrier.position.set(-15, 3.8, -37);
+        let topRightBarrierboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        topRightBarrierboudary.setFromObject(topRightBarrier);
+        topRightBarrier.visible = false;
+
+        const topRightBarrier1 = new THREE.Mesh(new THREE.BoxGeometry(25, 7, 2.7), new THREE.MeshBasicMaterial({ color: 0xa9c388 }));
+        scene.add(topRightBarrier1);
+        topRightBarrier1.position.set(-37, 3.8, -24);
+        let topRightBarrier1boudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        topRightBarrier1boudary.setFromObject(topRightBarrier1);
+        topRightBarrier1.visible = false;
+
+        const bottomRightBarrier = topLeftBarrier.clone();
+        scene.add(bottomRightBarrier);
+        bottomRightBarrier.position.set(15, 3.8, -37);
+        let bottomRightBarrierboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        bottomRightBarrierboudary.setFromObject(bottomRightBarrier);
+        bottomRightBarrier.visible = false;
+
+        const bottomRightBarrier1 = new THREE.Mesh(new THREE.BoxGeometry(25, 7, 2.7), new THREE.MeshBasicMaterial({ color: 0xa9c388 }));
+        scene.add(bottomRightBarrier1);
+        bottomRightBarrier1.position.set(37, 3.8, -24);
+        let bottomRightBarrier1boudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        bottomRightBarrier1boudary.setFromObject(bottomRightBarrier1);
+        bottomRightBarrier1.visible = false;
+
+        const bottomLeftBarrier = new THREE.Mesh(new THREE.BoxGeometry(25, 7, 2.7), new THREE.MeshBasicMaterial({ color: 0xa9c388 }));
+        scene.add(bottomLeftBarrier);
+        bottomLeftBarrier.position.set(15, 3.8, 37);
+        bottomLeftBarrier.rotation.y = 7.85;
+        let bottomLeftBarrierboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        bottomLeftBarrierboudary.setFromObject(bottomLeftBarrier);
+        bottomLeftBarrier.visible = false;
+
+        const bottomLeftBarrier1 = new THREE.Mesh(new THREE.BoxGeometry(25, 7, 2.7), new THREE.MeshBasicMaterial({ color: 0xa9c388 }));
+        scene.add(bottomLeftBarrier1);
+        bottomLeftBarrier1.position.set(37, 3.8, 24);
+        let bottomLeftBarrier1boudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        bottomLeftBarrier1boudary.setFromObject(bottomLeftBarrier1);
+        bottomLeftBarrier1.visible = false;
+
+
+        // make food 
+        var cube;
+        var cubeList = [];
+        var rBoundary = [];
+        for (let i = 0; i < 10; i++) {
+            cube = new THREE.Mesh(sphereGeometry, rappleMaterial);
+            scene.add(cube);
+            let xPos = THREE.MathUtils.randFloat(-40, 40);
+            let yPos = THREE.MathUtils.randFloat(-40, 40);
+            cube.position.set(yPos, 3, xPos);
+            let cubeboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+            cubeboudary.setFromObject(cube);
+            cubeList.push(cube);
+            rBoundary.push(cubeboudary);
+            if (((rBoundary[i].intersectsBox(topLeftBarrierboudary)) ||
+                (rBoundary[i].intersectsBox(topLeftBarrier1boudary)) ||
+                (rBoundary[i].intersectsBox(topRightBarrierboudary)) ||
+                (rBoundary[i].intersectsBox(topRightBarrier1boudary)) ||
+                (rBoundary[i].intersectsBox(bottomLeftBarrierboudary)) ||
+                (rBoundary[i].intersectsBox(bottomLeftBarrier1boudary)) ||
+                (rBoundary[i].intersectsBox(bottomRightBarrierboudary)) ||
+                (rBoundary[i].intersectsBox(bottomRightBarrier1boudary)))) {
+                cube.position.set(0, 3, 0);
+                /*let cubeboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+                cubeboudary.setFromObject(cube);
+                rBoundary.push(cubeboudary);*/
+            }
+
+        }
+
+        var sphere;
+        var sphereList = [];
+        var gBoundary = [];
+        for (let i = 0; i < 10; i++) {
+            sphere = new THREE.Mesh(sphereGeometry, gappleMaterial);
+            scene.add(sphere);
+            let xPos = THREE.MathUtils.randFloat(-40, 40);
+            let yPos = THREE.MathUtils.randFloat(-40, 40);
+            sphere.position.set(yPos, 3, xPos);
+
+            let sphereboudary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+            sphereboudary.setFromObject(sphere);
+            sphereList.push(sphere);
+            gBoundary.push(sphereboudary);
+            if (((gBoundary[i].intersectsBox(topLeftBarrierboudary)) ||
+                (gBoundary[i].intersectsBox(topLeftBarrier1boudary)) ||
+                (gBoundary[i].intersectsBox(topRightBarrierboudary)) ||
+                (gBoundary[i].intersectsBox(topRightBarrier1boudary)) ||
+                (gBoundary[i].intersectsBox(bottomLeftBarrierboudary)) ||
+                (gBoundary[i].intersectsBox(bottomLeftBarrier1boudary)) ||
+                (gBoundary[i].intersectsBox(bottomRightBarrierboudary)) ||
+                (gBoundary[i].intersectsBox(bottomRightBarrier1boudary)))) {
+                sphere.position.set(0, 3, 0);
+            }
+        }
+
+
+        let mixer;
+        let animationsArray;
+        const mouseLoader = new FBXLoader();
+        var boy, walk, jump, standing, dance, defeat;
+
+        mouseLoader.load(
+            './objects/character/Boy.fbx',
+            function (object) {
+                boy = object;
+                mouseLoader.load(
+                    './objects/character/idle.fbx',
+                    function (idle) {
+                        mixer = new THREE.AnimationMixer(object);
+                        standing = idle.animations[0];
+                        mixer.clipAction(standing).play();
+                        //standing.setLoop(THREE.LoopOnce,1);
+                    });
+                mouseLoader.load(
+                    './objects/character/walk.fbx',
+                    function (walking) {
+                        mixer = new THREE.AnimationMixer(object);
+                        walk = walking.animations[0];
+                    });
+                mouseLoader.load(
+                    './objects/character/jump.fbx',
+                    function (jumping) {
+                        mixer = new THREE.AnimationMixer(object);
+                        jump = jumping.animations[0];
+
+                    });
+                mouseLoader.load(
+                    './objects/character/Defeat.fbx',
+                    function (loser) {
+                        mixer = new THREE.AnimationMixer(object);
+                        defeat = loser.animations[0];
+
+                    });
+                mouseLoader.load(
+                    './objects/character/Dance.fbx',
+                    function (dancing) {
+                        mixer = new THREE.AnimationMixer(object);
+                        dance = dancing.animations[0];
+
+                    });
+
+
+                object.position.z = -48;
+                //object.rotation.y = 7.8;
+                object.scale.set(0.1, 0.1, 0.1);
+                scene.add(object);
+            }
+        );
+
+        //Boy Collision
+        var cyGeometry = new THREE.CylinderGeometry(2, 1, 20, 30);
+        var material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF, });
+        var boyCy = new THREE.Mesh(cyGeometry, material);
+        let boyBoundary = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+        boyBoundary.setFromObject(boyCy);
+        scene.add(boyCy);
+        boyCy.position.y = 10;
+        boyCy.position.z = -48;
+        boyCy.visible = false;
+
+        const listener = new THREE.AudioListener();
+        camera.add(listener);
+        const audioLoader = new THREE.AudioLoader();
+
+        const soundbackground = new THREE.Audio(listener);
+
+        audioLoader.load('./sounds/SneakySnitch.mp3', function (buffer) {
+            soundbackground.setBuffer(buffer);
+            soundbackground.setLoop(false);
+            soundbackground.setVolume(0.7);
+        });
+
+        const gameover = new THREE.Audio(listener);
+
+        audioLoader.load('./sounds/GameOver.mp3', function (buffer) {
+            gameover.setBuffer(buffer);
+            gameover.setLoop(false);
+            gameover.setVolume(0.7);
+        });
+
+        const hurt = new THREE.Audio(listener);
+
+        audioLoader.load('./sounds/hurt.mp3', function (buffer) {
+            hurt.setBuffer(buffer);
+            hurt.setLoop(false);
+            hurt.setVolume(0.7);
+        });
+
+        const eat = new THREE.Audio(listener);
+
+        audioLoader.load('./sounds/eating.mp3', function (buffer) {
+            eat.setBuffer(buffer);
+            eat.setLoop(false);
+            eat.setVolume(0.7);
+        });
+
+
+        var speed = 0.001;
+        var scoreNum = 0;
+
+
+        function resetPosition() {
+            boyCy.position.set(0, 0, -48);
+            boy.position.set(0, 0, -48);
+            boy.rotation.y = 0;
+            boyCy.position.y = 10;
+
+        }
+
+        function score() {
+            const fontLoader = new FontLoader();
+            fontLoader.load(
+                './examples/fonts/droid/droid_serif_regular.typeface.json',
+                (droidFont) => {
+                    const textGeometry = new TextGeometry(scoreNum.toString(), {
+                        height: 2,
+                        size: 5,
+                        font: droidFont,
+                    });
+                    const textMateriel = new THREE.MeshNormalMaterial();
+                    const score = new THREE.Mesh(textGeometry, textMateriel);
+                    score.position.set(-36, 20, -40);
+                    score.rotation.y = 1;
+                    scene.add(score);
+                }
+            );
+        }
+
+        function GameOver() {
+            const fontLoader = new FontLoader();
+            var go;
+            fontLoader.load(
+                './examples/fonts/droid/droid_sans_bold.typeface.json',
+                (droidFont) => {
+                    const textGeometry = new TextGeometry("Game Over", {
+                        height: 2,
+                        size: 15,
+                        font: droidFont,
+                    });
+                    const textMateriel = new THREE.MeshNormalMaterial();
+                    go = new THREE.Mesh(textGeometry, textMateriel);
+                    go.position.set(-25, 10, 60);
+                    go.rotation.y = 1;
+                    scene.add(go);
+                }
+            );
+        }
+
+        function removeText(text) {
+            scene.remove(text);
+        }
+
+        function checkCollision() {
+            return ((boyBoundary.intersectsBox(topLeftBarrierboudary)) ||
+                (boyBoundary.intersectsBox(topLeftBarrier1boudary)) ||
+                (boyBoundary.intersectsBox(topRightBarrierboudary)) ||
+                (boyBoundary.intersectsBox(topRightBarrier1boudary)) ||
+                (boyBoundary.intersectsBox(bottomLeftBarrierboudary)) ||
+                (boyBoundary.intersectsBox(bottomLeftBarrier1boudary)) ||
+                (boyBoundary.intersectsBox(bottomRightBarrierboudary)) ||
+                (boyBoundary.intersectsBox(bottomRightBarrier1boudary)))
+        }
+
+        function outOfPlane() {
+            return !(boyBoundary.intersectsBox(planeboudary))
+        }
+
+        function eatingRed() {
+            for (let i = 0; i < cubeList.length; i++) {
+                if ((boyBoundary.intersectsBox(rBoundary[i]))) {
+                    scene.remove(cubeList[i]);
+                    scene.remove(rBoundary[i]);
+                    eat.play();
+                    return true;
+                }
+            }
+            return false;
+
+            //console.log(scoreNum);
+        }
+
+        function eatingGreen() {
+            for (let i = 0; i < sphereList.length; i++) {
+                if ((boyBoundary.intersectsBox(gBoundary[i]))) {
+                    scene.remove(sphereList[i]);
+                    scene.remove(gBoundary[i]);
+                    eat.play();
+                    return true;
+
+                }
+            }
+            return false;
+        }
+
+        function moving() {
+
+            document.addEventListener('keydown', (e) => {
+                mixer.clipAction(defeat).stop();
+
+                switch (e.keyCode) {
+                    case 90:
+                        boy.position.x -= speed;
+                        boyCy.position.x -= speed;
+                        mixer.clipAction(walk).play();
+                        boy.rotation.y = -1.5;
+                        soundbackground.play()
+
+                        break;
+                    case 83:
+                        mixer.clipAction(walk).play();
+                        mixer.clipAction(jump).stop();
+                        boy.rotation.y = 7.8;
+                        boy.position.x += speed;
+                        boyCy.position.x += speed;
+                        soundbackground.play()
+
+                        break;
+                    case 68:
+                        boy.rotation.y = 3;
+                        boy.position.z -= speed;
+                        boyCy.position.z -= speed
+                        mixer.clipAction(walk).play()
+                        soundbackground.play()
+
+                        break;
+                    case 81:
+                        mixer.clipAction(walk).play();
+                        boy.rotation.y = 0;
+                        boy.position.z += speed;
+                        boyCy.position.z += speed;
+                        soundbackground.play()
+
+                        break;
+                    case 32:
+                        mixer.clipAction(jump).play();
+                        mixer.clipAction(walk).stop();
+                        soundbackground.play()
+
+                        break;
+                }
+            })
+            document.addEventListener('keyup', (e) => {
+                mixer.clipAction(standing).play();
+                switch (e.keyCode) {
+                    case 90:
+                        //boy.position.x -= speed;
+                        //boyCy.position.x -= speed;
+                        mixer.clipAction(walk).stop();
+                        boy.rotation.y = -1.5;
+                        break;
+                    case 83:
+                        mixer.clipAction(walk).stop();
+                        mixer.clipAction(jump).stop();
+                        boy.rotation.y = 7.8;
+                        //boy.position.x += speed;
+                        //boyCy.position.x += speed;
+                        break;
+                    case 68:
+                        boy.rotation.y = 3;
+                        //boy.position.z -= speed;
+                        //boyCy.position.z -= speed
+                        mixer.clipAction(walk).stop()
+                        break;
+                    case 81:
+                        mixer.clipAction(walk).stop();
+                        boy.rotation.y = 0;
+                        //boy.position.z += speed;
+                        //boyCy.position.z += speed;
+                        break;
+                    case 32:
+                        mixer.clipAction(jump).stop();
+                        mixer.clipAction(walk).stop();
+                        break;
+                }
+            })
+        };
+
+        camera.position.set(79, 81, 1.5);
+
+        function animate() {
+            boyBoundary.copy(boyCy.geometry.boundingBox).applyMatrix4(boyCy.matrixWorld);
+            moving()
+            score()
+
+            if (eatingGreen() == true) {
+                scoreNum += 5;
+
+            }
+
+            if (eatingRed() == true) {
+                scoreNum += 10;
+
+            }
+
+            if (checkCollision()) {
+                soundbackground.stop()
+                hurt.play();
+                resetPosition()
+                mixer.clipAction(walk).stop();
+                mixer.clipAction(standing).play();
+                mixer.clipAction(defeat).play();
+                scoreNum -= 2;
+            }
+
+            if (outOfPlane()) {
+                gameover.play()
+                soundbackground.stop()
+                GameOver();
+                resetPosition();
+                mixer.clipAction(walk).stop();
+                mixer.clipAction(defeat).play();
+                if(moving()){
+                    scene.remove(GameOver());
+                    scoreNum = 0;
+                }
+            }
+
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            if (mixer) mixer.update(delta);
+            renderer.render(scene, camera);
+            controls.update();
+
+        }
+        animate(); 
+    </script>
+</body>
+
+</html>
